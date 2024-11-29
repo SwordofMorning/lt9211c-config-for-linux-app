@@ -10,6 +10,37 @@
 
 #if ((LT9211C_MODE_SEL == MIPI_IN_LVDS_OUT)||(LT9211C_MODE_SEL == MIPI_IN_MIPI_OUT)||(LT9211C_MODE_SEL == MIPI_IN_TTL_OUT))
 
+void Drv_MipiRx_VidChkDebug(void)
+{
+    u16 wc, usVact;
+    u8 ucFmt;
+    u16 usHact;
+
+    HDMI_WriteI2C_Byte(0xff,0xd0);
+    wc = (HDMI_ReadI2C_Byte(0x82) << 8) + HDMI_ReadI2C_Byte(0x83);
+    usVact = (HDMI_ReadI2C_Byte(0x85) << 8) + HDMI_ReadI2C_Byte(0x86);
+    ucFmt = HDMI_ReadI2C_Byte(0x84) & 0x0f;
+    
+    // 根据格式计算实际Hact
+    switch (ucFmt) {
+        case 0x0a: // RGB8bpc
+            usHact = wc / 3;
+            break;
+        case 0x03: // YUV422-8bpc
+            usHact = wc / 2;
+            break;
+        case 0x04: // RGB10bpc
+            usHact = wc * 8 / 30;
+            break;
+        default:
+            usHact = wc / 3;
+            break;
+    }
+    
+    LTLog(LOG_INFO,"MipiRx Debug - WC: %d, Hact: %d, Vact: %d, Format: 0x%02x", 
+          wc, usHact, usVact, ucFmt);
+}
+
 void Mod_MipiRx_Init()
 {
     memset(&g_stPcrPara,0 ,sizeof(StructPcrPara));
@@ -118,10 +149,16 @@ void Mod_MipiRx_StateHandler(void)
                 g_stChipRx.pHdmiRxNotify(MIPIRX_VIDEO_ON_EVENT);
                 Mod_SystemRx_SetState(STATE_CHIPRX_PLAY_BACK);
             }
+            else
+            {
+                LTLog(LOG_INFO,"Video Check Unstable");
+                g_stChipRx.pHdmiRxNotify(MIPIRX_VIDEO_ON_EVENT);
+                Mod_SystemRx_SetState(STATE_CHIPRX_PLAY_BACK);
+            }
         break;
 
         case STATE_CHIPRX_PLAY_BACK:
-        Drv_LvdsRx_VidChkDebug();
+        Drv_MipiRx_VidChkDebug();
         break;
     }
 }

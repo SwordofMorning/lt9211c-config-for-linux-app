@@ -121,6 +121,7 @@ int run_once_keep_latter(char id)
 int reset_lt9211_by_gpiosys(char index);
 void probe_reset(int i2c_bus, int dev_addr)
 {
+/*
     char id = -1;
     // 2
     if(i2c_bus == 8 && dev_addr == 0x2d)
@@ -144,6 +145,8 @@ void probe_reset(int i2c_bus, int dev_addr)
 
     //system(reset_cmd);
     //system(reset_log);
+*/
+    reset_lt9211_by_gpiosys('b');
 
     msleep(800);
 }
@@ -190,7 +193,7 @@ int main(int argc, char * argv[])
 
     int ret;
     int cnt = 0;
-
+#if 1
     while(1)
     {
         cnt ++;
@@ -253,10 +256,12 @@ int main(int argc, char * argv[])
         Mod_TtlRx_Handler();
         Mod_TtlTx_Handler();
         #endif
-        if(cnt >= 500)
+        if(cnt >= 5000)
         {
             return -1;
         }
     }
+#endif
+    Mod_ChipID_Read();
     return -1;
 }

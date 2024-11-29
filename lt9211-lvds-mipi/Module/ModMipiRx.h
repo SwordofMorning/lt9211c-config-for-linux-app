@@ -14,9 +14,9 @@
 
 
 #define     MIPIRX_INPUT_SEL           MIPI_DSI            //MIPI_DSI/MIPI_CSI
-#define     MIPIRX_PORT_SEL            PORTB               //PORTA/PORTB
+#define     MIPIRX_PORT_SEL            PORTA               //PORTA/PORTB
 #define     MIPIRX_LANE_NUM            MIPIRX_4LANE        //MIPIRX_4LANE/MIPIRX_3LANE/MIPIRX_2LANE/MIPIRX_1LANE
-#define     MIPIRX_CLK_BURST           ENABLED             //ENABLED/DISABLED
+#define     MIPIRX_CLK_BURST           DISABLED             //ENABLED/DISABLED
 
 
 

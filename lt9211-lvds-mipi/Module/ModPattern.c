@@ -44,6 +44,9 @@ struct ChipRxVidTiming ptn_timing   = {48,  32,  80,   2560,   2720,   3,   5,  
 #if TX_VID_PATTERN_SEL == PTN_3840x2160_30
 struct ChipRxVidTiming ptn_timing   = {176, 88,  296,  3840,   4400, 8,   10,  72,  2160, 2250, 297000};
 #endif
+#if TX_VID_PATTERN_SEL == PTN_1024x768_60
+struct ChipRxVidTiming ptn_timing   = {24,    136,   160,    1024,    1344,    3,    6,   29,   768,    806,   60};
+#endif
 
                                                     //hfp    hs     hbp     hact     htotal   vfp   vs   vbp   vact    vtotal
 struct video_pattern_timing pattern_640x480_15Hz   = {24,    96,    40,     640,     800,     33,   2,   10,   480,    525,     15};
@@ -57,12 +60,15 @@ struct video_pattern_timing pattern_1920x1080_90Hz = {88,    44,    148,    1920
 struct video_pattern_timing pattern_1920x1080_100Hz= {88,    44,    148,    1920,    2200,    4,    5,   36,   1080,   1125,   100};
 struct video_pattern_timing pattern_2560x1440_60Hz = {48,    32,    80,     2560,    2720,    3,    5,   33,   1440,   1481,    60};
 struct video_pattern_timing pattern_3840x2160_30Hz = {176,   88,    296,    3840,    4400,    8,   10,  72,   2160,   2250,    30};
+// XJT
+struct video_pattern_timing pattern_1024x768_60Hz = {24,    136,   160,    1024,    1344,    3,    6,   29,   768,    806,   60};
 
 
 void Mod_SystemInt(void)
 {
-    /* system clock init */
+    HDMI_WriteI2C_Byte(0xff,0x81);//register bank
     HDMI_WriteI2C_Byte(0xff,0x85);
+    HDMI_WriteI2C_Byte(0xff,0x81);//register bank
     HDMI_WriteI2C_Byte(0xe9,0x88); //sys clk sel from XTAL
 }
 
@@ -233,6 +239,10 @@ void Mod_VidChkDebug_ForPtn(void)
     {
         LTLog(LOG_INFO,"Video Pattern Set 3840x2160_30Hz");
     }
+    else if ((ushact == pattern_1024x768_60Hz.hact ) &&(usvact == pattern_1024x768_60Hz.vact ))
+    {
+        LTLog(LOG_INFO,"Video Pattern Set 1024x768_60Hz");
+    }
     else
     {
         LTLog(LOG_INFO,"No Video Set");
@@ -369,7 +379,7 @@ void Mod_MipiTxpll_ForPtn(struct ChipRxVidTiming *ptn_timing)
     ucPreDiv = 1;
 
     //div set
-    //Vcoclk=byte_clk*4*M3=25M*M1*M2*ucSericlkDiv(Òì²½Ä£Ê½), M2 default value is 2;
+    //Vcoclk=byte_clk*4*M3=25M*M1*M2*ucSericlkDiv(ï¿½ì²½Ä£Ê½), M2 default value is 2;
     ucDivSet = (u8)(ulMpiTXPhyClk * ucSericlkDiv / 25000);
 
     HDMI_WriteI2C_Byte(0xff,0x82);
@@ -520,7 +530,7 @@ void Mod_MipiTx_PhyTimingParaSet_ForPtn()
 
     if(b1MipiClockburst)
     {
-        //·ÇÁ¬ÐøÊ±ÖÓ´Ó1.94G~2.5GÏÂ£¬clk_zero¸ù¾Ý¹Ì¶¨¹«Ê½ÎÞ·¨³öÍ¼
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ó´ï¿½1.94G~2.5Gï¿½Â£ï¿½clk_zeroï¿½ï¿½ï¿½Ý¹Ì¶ï¿½ï¿½ï¿½Ê½ï¿½Þ·ï¿½ï¿½ï¿½Í¼
         if (ulMipiDataRate > CTS_DATARATE)
         {
             ucClkZero = 0x05;
@@ -1282,8 +1292,10 @@ void Mod_TtlTx_PtnTiming_Set(struct ChipRxVidTiming *ptn_timing)
     HDMI_WriteI2C_Byte(0x1f,(u8)(ptn_timing->usHs/256));
     HDMI_WriteI2C_Byte(0x20,(u8)(ptn_timing->usHs%256)); //hs
 
+    LTLog(LOG_INFO, "__________________________usVS: %d", ptn_timing->usVs);
     HDMI_WriteI2C_Byte(0x21,(u8)(ptn_timing->usVs%256)); //vs
-
+    u8 vs_ = HDMI_ReadI2C_Byte(0x21);
+    LTLog(LOG_INFO, "__________________________usVS_read: %d", vs_);
 }
 
 void Mod_TtlTxHalfBit_ForPtn()
@@ -2023,33 +2035,33 @@ void Mod_CscSet_ForTtlPtn()
     #endif
 }
 
-//Mod_TtlTxPhaseSet_ForPtnº¯Êý£ºµ÷½Úttltx IOÊ±ÖÓµÄÏàÎ»
+//Mod_TtlTxPhaseSet_ForPtnï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ttltx IOÊ±ï¿½Óµï¿½ï¿½ï¿½Î»
 void Mod_TtlTxPhaseSet_ForPtn()
 {
-    //pclk_khz: ttltx²Î¿¼µÄpix_clk
-    //io_dclk_khz: ttltxÊµ¼ÊÍ¨¹ýIOÊä³öµ½pin½ÅµÄdclk
-    //ucphase£ºDLL ÏàÎ» ·¶Î§0~7
+    //pclk_khz: ttltxï¿½Î¿ï¿½ï¿½ï¿½pix_clk
+    //io_dclk_khz: ttltxÊµï¿½ï¿½Í¨ï¿½ï¿½IOï¿½ï¿½ï¿½ï¿½ï¿½pinï¿½Åµï¿½dclk
+    //ucphaseï¿½ï¿½DLL ï¿½ï¿½Î» ï¿½ï¿½Î§0~7
     u32 pclk_khz;
     u32 io_dclk_khz;
     u8 ucphase;
 
-    //²Î¿¼Ê±ÖÓpix_clkÑ¡Ôñ:
-        //ad_desscpll_pix_clk£¨patternÈ«²¿Ä£Ê½/mipirxÈ«²¿Ä£Ê½/lvdsrxµÄdesscÄ£Ê½£©
-        //ad_rxpll_pix_clk£¨ttlrxÈ«²¿Ä£Ê½/lvdsrxµÄ·ÇdesscÄ£Ê½£©
+    //ï¿½Î¿ï¿½Ê±ï¿½ï¿½pix_clkÑ¡ï¿½ï¿½:
+        //ad_desscpll_pix_clkï¿½ï¿½patternÈ«ï¿½ï¿½Ä£Ê½/mipirxÈ«ï¿½ï¿½Ä£Ê½/lvdsrxï¿½ï¿½desscÄ£Ê½ï¿½ï¿½
+        //ad_rxpll_pix_clkï¿½ï¿½ttlrxÈ«ï¿½ï¿½Ä£Ê½/lvdsrxï¿½Ä·ï¿½desscÄ£Ê½ï¿½ï¿½
     pclk_khz = Drv_System_FmClkGet(AD_DESSCPLL_PIX_CLK);
 
-    //ttltx²»Í¬Ä£Ê½ÏÂio_dclk_khzÓëpclk_khzµÄ¶ÔÓ¦¹ØÏµ
+    //ttltxï¿½ï¿½Í¬Ä£Ê½ï¿½ï¿½io_dclk_khzï¿½ï¿½pclk_khzï¿½Ä¶ï¿½Ó¦ï¿½ï¿½Ïµ
     #if TTLTX_DATARATE_MODE == SDR// SDR case
-        #if TTLTX_HALF_BIT_MODE == DISABLED     //case 1£ºRGB 24BIT¡¢YUV422 16BIT¡¢BT1120 16BIT
+        #if TTLTX_HALF_BIT_MODE == DISABLED     //case 1ï¿½ï¿½RGB 24BITï¿½ï¿½YUV422 16BITï¿½ï¿½BT1120 16BIT
             io_dclk_khz = pclk_khz;
-        #elif TTLTX_HALF_BIT_MODE == ENABLED    //case 2£ºBT656 8BIT
+        #elif TTLTX_HALF_BIT_MODE == ENABLED    //case 2ï¿½ï¿½BT656 8BIT
             io_dclk_khz = pclk_khz*2;
         #endif
     #elif TTLTX_DATARATE_MODE == DDR// DDR case
-        #if TTLTX_HALF_CLOCK_MODE == ENABLED//Ò»°ãDDRÄ£Ê½
-            #if TTLTX_HALF_BIT_MODE == DISABLED     //case 1£ºRGB 24BIT¡¢YUV422 16BIT¡¢BT1120 16BIT
+        #if TTLTX_HALF_CLOCK_MODE == ENABLED//Ò»ï¿½ï¿½DDRÄ£Ê½
+            #if TTLTX_HALF_BIT_MODE == DISABLED     //case 1ï¿½ï¿½RGB 24BITï¿½ï¿½YUV422 16BITï¿½ï¿½BT1120 16BIT
                 io_dclk_khz = pclk_khz/2;
-            #elif TTLTX_HALF_BIT_MODE == ENABLED    //case 2£ºBT656 8BIT
+            #elif TTLTX_HALF_BIT_MODE == ENABLED    //case 2ï¿½ï¿½BT656 8BIT
                 io_dclk_khz = pclk_khz;
             #endif
         #endif
@@ -2058,27 +2070,27 @@ void Mod_TtlTxPhaseSet_ForPtn()
         #endif
     #endif
 
-    //¸ù¾Ýio_dclk_khzÅäÖÃÏàÎ»
-    //ÏàÎ»ÅäÖÃ·½·¨£º
-        //SDRÄ£Ê½£ºDLL ÏàÎ»Ä¬ÈÏ0£¬Ê±ÖÓÐÅºÅÉÏÉýÑØ²ÉÑù£¬µÍÆµ£¨io_dclk_khz < 100MHz£©·´Ïò£¬¸ßÆµ²»·´Ïò¡£Èç¹û¿Í»§µÄ½ÓÊÕ¶ËÓÐÃ÷È·ÒªÇó£¬°´ÒªÇóµ÷ÕûDLLÏàÎ»
-        //DDRÄ£Ê½£ºÄ¬ÈÏDEºóµÚÒ»¸öÓÐÐ§ÑØÊÇÉÏÉýÑØ£¬DLLÓÃÏàÎ»3£»Ä¬ÈÏDEºóµÚÒ»¸öÓÐÐ§ÑØÊÇÏÂ½µÑØÊ±£¬DLLÓÃÏàÎ»7¡£Èç¹û¿Í»§µÄ½ÓÊÕ¶ËÓÐÃ÷È·ÒªÇó£¬°´ÒªÇóµ÷ÕûDLLÏàÎ»
+    //ï¿½ï¿½ï¿½ï¿½io_dclk_khzï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»
+    //ï¿½ï¿½Î»ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½
+        //SDRÄ£Ê½ï¿½ï¿½DLL ï¿½ï¿½Î»Ä¬ï¿½ï¿½0ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Åºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½io_dclk_khz < 100MHzï¿½ï¿½ï¿½ï¿½ï¿½ò£¬¸ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½Ä½ï¿½ï¿½Õ¶ï¿½ï¿½ï¿½ï¿½ï¿½È·Òªï¿½ó£¬°ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½DLLï¿½ï¿½Î»
+        //DDRÄ£Ê½ï¿½ï¿½Ä¬ï¿½ï¿½DEï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø£ï¿½DLLï¿½ï¿½ï¿½ï¿½Î»3ï¿½ï¿½Ä¬ï¿½ï¿½DEï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ï¿½Â½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½DLLï¿½ï¿½ï¿½ï¿½Î»7ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½Ä½ï¿½ï¿½Õ¶ï¿½ï¿½ï¿½ï¿½ï¿½È·Òªï¿½ó£¬°ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½DLLï¿½ï¿½Î»
     #if TTLTX_DATARATE_MODE == SDR
-        ucphase = 0; //Ä¬ÈÏÏàÎ»0
+        ucphase = 0; //Ä¬ï¿½ï¿½ï¿½ï¿½Î»0
         HDMI_WriteI2C_Byte(0xff,0x82);
-        HDMI_WriteI2C_Byte(0x65,HDMI_ReadI2C_Byte(0x65) | (ucphase<<4)); //DLL ÏàÎ»ÅäÖÃ £¨×¢: ÏàÎ»µ÷½ÚÊ§°Ü¿É¼ì²é8263[2]ÊÇ·ñ´ò¿ª£©
+        HDMI_WriteI2C_Byte(0x65,HDMI_ReadI2C_Byte(0x65) | (ucphase<<4)); //DLL ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½×¢: ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Ü¿É¼ï¿½ï¿½8263[2]ï¿½Ç·ï¿½ò¿ª£ï¿½
         if(pclk_khz <= 100000)
         {
-            HDMI_WriteI2C_Byte(0x2b,HDMI_ReadI2C_Byte(0x2b) | BIT3_1);  //822b[3]=1,Ê±ÖÓ·´Ïò
+            HDMI_WriteI2C_Byte(0x2b,HDMI_ReadI2C_Byte(0x2b) | BIT3_1);  //822b[3]=1,Ê±ï¿½Ó·ï¿½ï¿½ï¿½
         }
         else
         {
             HDMI_WriteI2C_Byte(0xff,0x82);
-            HDMI_WriteI2C_Byte(0x2b,HDMI_ReadI2C_Byte(0x2b) & BIT3_0);  //822b[3]=1,Ê±ÖÓ²»·´Ïò
+            HDMI_WriteI2C_Byte(0x2b,HDMI_ReadI2C_Byte(0x2b) & BIT3_0);  //822b[3]=1,Ê±ï¿½Ó²ï¿½ï¿½ï¿½ï¿½ï¿½
         }
     #elif TTLTX_DATARATE_MODE == DDR
-        ucphase = 3; //Ä¬ÈÏÏàÎ»3»ò7
+        ucphase = 3; //Ä¬ï¿½ï¿½ï¿½ï¿½Î»3ï¿½ï¿½7
         HDMI_WriteI2C_Byte(0xff,0x82);
-        HDMI_WriteI2C_Byte(0x65,HDMI_ReadI2C_Byte(0x65) | (ucphase<<4)); //DLL ÏàÎ»ÅäÖÃ £¨×¢: ÏàÎ»µ÷½ÚÊ§°Ü¿É¼ì²é8263[2]ÊÇ·ñ´ò¿ª£©
+        HDMI_WriteI2C_Byte(0x65,HDMI_ReadI2C_Byte(0x65) | (ucphase<<4)); //DLL ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½×¢: ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Ü¿É¼ï¿½ï¿½8263[2]ï¿½Ç·ï¿½ò¿ª£ï¿½
     #endif
 
     LTLog(LOG_INFO,"pix clk = %ld kHz",pclk_khz);

@@ -77,7 +77,7 @@ CXXFLAGS  =
 LDFLAGS   = 
 
 # For cross complie, as same as gcc if not specified.
-CROSS_COMPILE ?= aarch64-linux-gnu-
+CROSS_COMPILE ?= /hdd/System/rk3588-linux/buildroot/output/rockchip_rk3588/host/bin/aarch64-buildroot-linux-gnu-
 #CROSS_COMPILE=arm-linux-
 
 # The directories in which source/include/library files reside.

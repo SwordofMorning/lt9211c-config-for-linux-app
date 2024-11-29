@@ -34,11 +34,11 @@ int reset_lt9211_by_gpiosys(char index)
     // 将标号转换为RK gpio的索引
     if(index =='a')
     {
-        DEMO_RK_GPIO_INDEX = str_to_rk_gpio("RK_GPIO1_A1");
+        DEMO_RK_GPIO_INDEX = str_to_rk_gpio("RK_GPIO4_C3");
         printf("index %d\n", DEMO_RK_GPIO_INDEX);
     }else if (index == 'b')
     {
-        DEMO_RK_GPIO_INDEX = str_to_rk_gpio("RK_GPIO1_A3");
+        DEMO_RK_GPIO_INDEX = str_to_rk_gpio("RK_GPIO4_C3");
         printf("index %d\n", DEMO_RK_GPIO_INDEX);
     }
 

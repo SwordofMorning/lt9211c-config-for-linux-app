@@ -1,53 +1,40 @@
-/******************************************************************************
-  * @project: LT9211C
-  * @file: DrvMipiRx.c
-  * @author: sxue
-  * @company: LONTIUM COPYRIGHT and CONFIDENTIAL
-  * @date: 2023.01.29
-/******************************************************************************/
-
 #include "include.h"
 
 #if ((LT9211C_MODE_SEL == MIPI_IN_LVDS_OUT)||(LT9211C_MODE_SEL == MIPI_IN_MIPI_OUT)||(LT9211C_MODE_SEL == MIPI_IN_TTL_OUT))
 
+// 全局变量定义
 StructPcrPara g_stPcrPara;
 SrtuctMipiRx_VidTiming_Get g_stMipiRxVidTiming_Get;
 
-//hfp    hs     hbp     hact     htotal   vfp   vs   vbp   vact    vtotal  framerate
-RDATA struct VideoTimingList resolution[]  = {
- {8,     96,    40,     640,     800,     33,   2,   10,   480,    525,   60},  //video_640x480_60Hz
- {16,    62,    60,     720,     858,     9,    6,   30,   480,    525,   60},  //video_720x480_60Hz
- {12,    64,    88,     720,     864,     5,    5,   39,   576,    625,   50},  //video_720x576_50Hz
- {48,    128,   88,     800,     1056,    1,    4,   23,   600,    628,   60},  //video_800x600_60Hz
- {110,   40,    220,    1280,    1650,    5,    5,   20,   720,    750,   30},  //video_1280x720_30Hz
- {440,   40,    220,    1280,    1980,    5,    5,   20,   720,    750,   50},  //video_1280x720_50Hz
- {110,   40,    220,    1280,    1650,    5,    5,   20,   720,    750,   60},  //video_1280x720_60Hz
- {24,    136,   160,    1024,    1344,    3,    6,   29,   768,    806,   60},  //video_1024x768_60Hz
- {26,    110,   110,    1366,    1592,    13,   6,   13,   768,    800,   60},  //video_1366x768_60Hz
- {110,   40,    220,    1280,    1650,    5,    5,   20,   720,    750,   30},  //video_1280x720_30Hz
- {48,    32,    80,     1920,    2080,    5,    5,   20,   720,    750,   60},  //video_1920x720_60Hz
- {48,    112,   248,    1280,    1688,    1,    3,   38,   1024,   1066,  60},  //video_1028x1024_60Hz
- {88,    44,    148,    1920,    2200,    4,    5,   36,   1080,   1125,  30},  //video_1920x1080_30Hz
- {88,    44,    148,    1920,    2200,    4,    5,   36,   1080,   1125,  60},  //video_1920x1080_60Hz
- {88,    44,    148,    1920,    2200,    4,    5,   36,   1080,   1125,  90},  //video_1920x1080_90Hz
-// {90,    44,    148,    1920,    2202,    14,    5,   36,   1080,   1135,  60},
- {64,    192,   304,    1600,    2160,    1,    3,   46,   1200,   1250,  60},  //video_1600x1200_60Hz
- {48,    32,    80,     1920,    2080,    3,    6,   26,   1200,   1235,  60},  //video_1920x1200_60Hz
- {32,    48,    80,     2048,    2208,    6,    3,   28,   1280,   1317,  60},  //video_2048x1280_60Hz
- {50,    48,    80,     2304,    2482,    6,    3,   32,   1440,   1481,  60},  //video_2304x1440_60Hz
- {48,    32,    80,     2560,    2720,    3,    5,   33,   1440,   1481,  60},  //video_2560x1440_60Hz
- {1276,  88,    296,    3840,    5500,    8,    10,  72,   2160,   2250,  24},  //video_3840x2160_24Hz
- {1056,  88,    296,    3840,    5280,    8,    10,  72,   2160,   2250,  25},  //video_3840x2160_25Hz
- {176,   88,    296,    3840,    4400,    8,    10,  72,   2160,   2250,  30},  //video_3840x2160_30Hz
+// 视频时序配置表
+static VideoTimingList resolution[] = {
+    {8,     96,    40,     640,     800,     33,   2,   10,   480,    525,   60},  //video_640x480_60Hz
+    {16,    62,    60,     720,     858,     9,    6,   30,   480,    525,   60},  //video_720x480_60Hz
+    {12,    64,    88,     720,     864,     5,    5,   39,   576,    625,   50},  //video_720x576_50Hz
+    {48,    128,   88,     800,     1056,    1,    4,   23,   600,    628,   60},  //video_800x600_60Hz
+    {110,   40,    220,    1280,    1650,    5,    5,   20,   720,    750,   30},  //video_1280x720_30Hz
+    {440,   40,    220,    1280,    1980,    5,    5,   20,   720,    750,   50},  //video_1280x720_50Hz
+    {110,   40,    220,    1280,    1650,    5,    5,   20,   720,    750,   60},  //video_1280x720_60Hz
+    {24,    136,   160,    1024,    1344,    3,    6,   29,   768,    806,   60},  //video_1024x768_60Hz
+    {26,    110,   110,    1366,    1592,    13,   6,   13,   768,    800,   60},  //video_1366x768_60Hz
+    {110,   40,    220,    1280,    1650,    5,    5,   20,   720,    750,   30},  //video_1280x720_30Hz
+    {48,    32,    80,     1920,    2080,    5,    5,   20,   720,    750,   60},  //video_1920x720_60Hz
+    {48,    112,   248,    1280,    1688,    1,    3,   38,   1024,   1066,  60},  //video_1028x1024_60Hz
+    {88,    44,    148,    1920,    2200,    4,    5,   36,   1080,   1125,  30},  //video_1920x1080_30Hz
+    {88,    44,    148,    1920,    2200,    4,    5,   36,   1080,   1125,  60},  //video_1920x1080_60Hz
+    {64,    192,   304,    1600,    2160,    1,    3,   46,   1200,   1250,  60},  //video_1600x1200_60Hz
+    {48,    32,    80,     1920,    2080,    3,    6,   26,   1200,   1235,  60},  //video_1920x1200_60Hz
+    {1276,  88,    296,    3840,    5500,    8,    10,  72,   2160,   2250,  24},  //video_3840x2160_24Hz
+    {1056,  88,    296,    3840,    5280,    8,    10,  72,   2160,   2250,  25},  //video_3840x2160_25Hz
+    {176,   88,    296,    3840,    4400,    8,    10,  72,   2160,   2250,  30},  //video_3840x2160_30Hz
+    {1056,  88,    296,    3840,    5280,    8,    10,  72,   2160,   2250,  50},  //video_3840x2160_50Hz
+    {176,   88,    296,    3840,    4400,    8,    10,  72,   2160,   2250,  60},  //video_3840x2160_60Hz
+};
 
- };
-
-#define MIPIRX_FORMAT_CNT   0x0f
-RDATA char* g_szStrRxFormat[MIPIRX_FORMAT_CNT] =
-{
+static const char* g_szStrRxFormat[] = {
     "",
     "DSI YUV422 10bit",
-    "DSI YUV422 12bit",
+    "DSI YUV422 12bit", 
     "YUV422 8bit",
     "RGB 10bit",
     "RGB 12Bit",
@@ -57,9 +44,9 @@ RDATA char* g_szStrRxFormat[MIPIRX_FORMAT_CNT] =
     "DSI RGB 6L",
     "RGB 8Bit",
     "RAW8",
-    "RAW10",
+    "RAW10", 
     "RAW12",
-    "CSI YUV422 10",
+    "CSI YUV422 10"
 };
 
 void DRV_DesscPll_SdmCal(void)
@@ -75,7 +62,6 @@ void DRV_DesscPll_SdmCal(void)
     HDMI_WriteI2C_Byte(0x28,(u8)(g_stPcrPara.Pcr_K >> 8)); //k
     HDMI_WriteI2C_Byte(0x29,(u8)(g_stPcrPara.Pcr_K)); //k
     HDMI_WriteI2C_Byte(0x26,(HDMI_ReadI2C_Byte(0x26) & 0x7f));
-
 }
 
 void Drv_MipiRx_DesscPll_Set()
@@ -135,6 +121,7 @@ void Drv_MipiRx_DesscPll_Set()
     Ocm_Timer0_Delay1ms(1);
     HDMI_WriteI2C_Byte(0x03,0xff); //desscpll rst
 }
+
 
 u8 Drv_MipiRx_PcrCali(void)
 {
@@ -220,7 +207,7 @@ u8 Drv_MipiRx_PcrCali(void)
         Ocm_Timer0_Delay1ms(100);
         ucPcr_Cal_Cnt++;
         LTLog(LOG_WARN,"PCR unstable M = 0x%02x",(HDMI_ReadI2C_Byte(0x94)&0x7F));
-    }while((ucPcr_Cal_Cnt < 200) && ((HDMI_ReadI2C_Byte(0x87) & 0x18) != 0x18));
+    }while((ucPcr_Cal_Cnt < 10) && ((HDMI_ReadI2C_Byte(0x87) & 0x18) != 0x18));
 
     if((HDMI_ReadI2C_Byte(0x87) & 0x18) != 0x18)
     {
@@ -249,7 +236,6 @@ u8 Drv_MipiRx_VidFmtUpdate()
     }
 }
 
-
 void Drv_MipiRx_HsSettleSet(void)
 {
     if((g_stMipiRxVidTiming_Get.ucLane0SetNum > 0x10) && (g_stMipiRxVidTiming_Get.ucLane0SetNum < 0x50))
@@ -268,6 +254,8 @@ void Drv_MipiRx_HsSettleSet(void)
 
 void Drv_MipiRx_SotGet()
 {
+    LTLog(LOG_DEBUG, "______________LABEL");
+    Mod_ChipID_Read();
     HDMI_WriteI2C_Byte(0xff,0xd0);
     g_stMipiRxVidTiming_Get.ucLane0SetNum  = HDMI_ReadI2C_Byte(0x88);
     g_stMipiRxVidTiming_Get.ucLane0SotData = HDMI_ReadI2C_Byte(0x89);
@@ -339,8 +327,11 @@ void Drv_MipiRx_HactGet()
 
 u8 Drv_MipiRx_VidTiming_Get(void)
 {
+    LTLog(LOG_DEBUG, "______________1");
     Drv_MipiRx_SotGet();
+    LTLog(LOG_DEBUG, "______________2");
     Drv_MipiRx_HsSettleSet();
+    LTLog(LOG_DEBUG, "______________3");
     Drv_MipiRx_HactGet();
     if((g_stMipiRxVidTiming_Get.usHact < 400) || (g_stMipiRxVidTiming_Get.usVact < 400))
     {
@@ -474,6 +465,7 @@ u8 Drv_MipiRx_VidFmt_Get(IN u8 VidFmt)
 
 void Drv_MipiRx_InputSel()
 {
+    Mod_ChipID_Read();
     HDMI_WriteI2C_Byte(0xff,0xd0);
     #if (MIPIRX_INPUT_SEL == MIPI_CSI)
     HDMI_WriteI2C_Byte(0x04,0x10); //[4]1: CSI enable
@@ -483,6 +475,7 @@ void Drv_MipiRx_InputSel()
     HDMI_WriteI2C_Byte(0x04,0x00); //[4]0: DSI enable
     HDMI_WriteI2C_Byte(0x21,0x46); //[7](dsi: hsync_level(for pcr adj) = hsync_level; csi:hsync_level(for pcr adj) = de_level)
     LTLog(LOG_INFO,"Mipi DSI Input");
+    Mod_ChipID_Read();
     #endif
 }
 
@@ -513,7 +506,9 @@ void Drv_MipiRx_LaneSet(void)
 void Drv_MipiRxClk_Sel(void)
 {
     /* CLK sel */
+    HDMI_WriteI2C_Byte(0xff,0x81);
     HDMI_WriteI2C_Byte(0xff,0x85);
+    HDMI_WriteI2C_Byte(0xff,0x81);
     HDMI_WriteI2C_Byte(0xe9,0x88); //sys clk sel from XTAL
 
     HDMI_WriteI2C_Byte(0xff,0x81);
@@ -527,8 +522,11 @@ void Drv_MipiRxClk_Sel(void)
     HDMI_WriteI2C_Byte(0x81,0x30); //[5]1: mlrx byte clock select from ad_mlrxb_byte_clk
                                    //[4]1: rx output pixel clock select from ad_desscpll_pix_clk
     #endif
+    HDMI_WriteI2C_Byte(0xff,0x81);
     HDMI_WriteI2C_Byte(0xff,0x86);
     HDMI_WriteI2C_Byte(0x32,0x03); //video check frame cnt set: 3 frame
+    LTLog(LOG_INFO,"DEBUG_LABEL_2");
+    Mod_ChipID_Read();
 }
 
 void Drv_MipiRx_PhyPowerOn(void)
@@ -593,6 +591,8 @@ void Drv_MipiRx_PhyPowerOn(void)
     HDMI_WriteI2C_Byte(0xff,0x81);
     HDMI_WriteI2C_Byte(0x09,0xde); //mipi rx dphy reset
     HDMI_WriteI2C_Byte(0x09,0xdf); //mipi rx dphy release
+    LTLog(LOG_INFO,"DEBUG_LABEL_1");
+    Mod_ChipID_Read();
 }
 
 

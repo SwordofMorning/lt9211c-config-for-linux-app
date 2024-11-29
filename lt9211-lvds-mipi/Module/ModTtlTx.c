@@ -22,6 +22,7 @@ void Mod_TtlTx_StateJudge(void)
 
 void Mod_TtlTx_StateHandler(void)
 {
+    LTLog(LOG_INFO, "g_stChipTx.ucTxState = %d", g_stChipTx.ucTxState);
     switch (g_stChipTx.ucTxState)
     {
         case STATE_CHIPTX_POWER_ON:

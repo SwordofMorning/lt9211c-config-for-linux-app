@@ -2,15 +2,15 @@
 #ifndef _MAIN_H
 #define _MAIN_H
 
-#define  LT9211_I2CADR 0x5a
+#define  LT9211_I2CADR 0x52
 
-// ÍÆ¼öÓÃU2µÄÅäÖÃ£¬U2µÄÅäÖÃ¿ÉÒÔ¼æÈÝU1µÄ
+// ï¿½Æ¼ï¿½ï¿½ï¿½U2ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½U2ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½U1ï¿½ï¿½
 #define         LT9211C_VERSION              U2             //U1/U2
-#define         LT9211C_MODE_SEL             LVDS_IN_MIPI_OUT
+#define         LT9211C_MODE_SEL             MIPI_IN_TTL_OUT
 /*
 LVDS_IN_LVDS_OUT  LVDS_IN_MIPI_OUT  LVDS_IN_TTL_OUT
 MIPI_IN_LVDS_OUT  MIPI_IN_MIPI_OUT  MIPI_IN_TTL_OUT
-TTL_IN_LVDS_OUT   TTL_IN_MIPI_OUT   TTL_IN_TTL_OUT     //TTL_IN_TTL_OUTÊ±Ðè×¢Òâttltx 8264¼Ä´æÆ÷ÅäÖÃ
+TTL_IN_LVDS_OUT   TTL_IN_MIPI_OUT   TTL_IN_TTL_OUT     //TTL_IN_TTL_OUTÊ±ï¿½ï¿½×¢ï¿½ï¿½ttltx 8264ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 MIPI_REPEATER     MIPI_LEVEL_SHIFT  PATTERN_OUT
 */
 

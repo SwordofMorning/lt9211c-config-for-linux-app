@@ -37,12 +37,13 @@ typedef struct video_pattern_timing
 #define     PTN_3840x2160_30              10
 #define     PTN_3840x2160_60              11
 #define     PTN_1280x720_60               12
+#define     PTN_1024x768_60               13
 
 
 int Mod_ChipTx_PtnOut(void);
 
-#define         TX_PATTERN_SRC_SEL          NO_TX_PATTERN   //NO_TX_PATTERN/MIPITX_PATTERN/LVDSTX_PATTERN/TTLTX_PATTERN
-#define         TX_VID_PATTERN_SEL          PTN_1920x1080_30  //NO_PATTERN/PTN_640x480_15/PTN_640x480_60/PTN_720x480_60/PTN_1280x720_60/PTN_1920x720_60/PTN_1920x1080_30
+#define         TX_PATTERN_SRC_SEL          TTLTX_PATTERN   //NO_TX_PATTERN/MIPITX_PATTERN/LVDSTX_PATTERN/TTLTX_PATTERN
+#define         TX_VID_PATTERN_SEL          PTN_1280x720_60  //NO_PATTERN/PTN_640x480_15/PTN_640x480_60/PTN_720x480_60/PTN_1280x720_60/PTN_1920x720_60/PTN_1920x1080_30
                                                               //PTN_1920x1080_60/PTN_1920x1080_90/PTN_1920x1080_100/PTN_2560x1440_60/PTN_3840x2160_30
 
 
