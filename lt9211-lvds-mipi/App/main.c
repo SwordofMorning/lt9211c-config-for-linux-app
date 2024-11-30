@@ -256,7 +256,7 @@ int main(int argc, char * argv[])
         Mod_TtlRx_Handler();
         Mod_TtlTx_Handler();
         #endif
-        if(cnt >= 5000)
+        if(cnt >= 50)
         {
             return -1;
         }
